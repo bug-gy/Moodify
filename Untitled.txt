@@ -1,0 +1,137 @@
+"""
+Numerical Methods:
+Exponential Curve Fitting  y = a*b^x
+Composite Trapezoidal Rule
+Simpson's 1/3 and 3/8 Rules
+Boole's Rule and Weddle's Rule
+"""
+
+import numpy as np
+
+
+# ---------------------------------------------------------
+# 1. Exponential Curve Fitting: y = a * b^x
+# ---------------------------------------------------------
+def exponential_fit(x, y):
+    """
+    Fit y = a * b^x using least squares on the linearized form:
+    ln(y) = ln(a) + x*ln(b)
+    """
+    x = np.array(x, dtype=float)
+    y = np.array(y, dtype=float)
+    Y = np.log(y)
+
+    n = len(x)
+    sum_x = np.sum(x)
+    sum_Y = np.sum(Y)
+    sum_xY = np.sum(x * Y)
+    sum_x2 = np.sum(x ** 2)
+
+    # Normal equations for Y = A + B*x
+    B = (n * sum_xY - sum_x * sum_Y) / (n * sum_x2 - sum_x ** 2)
+    A = (sum_Y - B * sum_x) / n
+
+    a = np.exp(A)
+    b = np.exp(B)
+    return a, b
+
+
+# ---------------------------------------------------------
+# 2. Composite Trapezoidal Rule
+# ---------------------------------------------------------
+def composite_trapezoidal(f, a, b, n):
+    """
+    Integrates f from a to b using n subintervals.
+    """
+    h = (b - a) / n
+    x = np.linspace(a, b, n + 1)
+    y = f(x)
+    integral = (h / 2) * (y[0] + 2 * np.sum(y[1:-1]) + y[-1])
+    return integral
+
+
+# ---------------------------------------------------------
+# 3. Simpson's 1/3 Rule  (n must be even)
+# ---------------------------------------------------------
+def simpsons_one_third(f, a, b, n):
+    if n % 2 != 0:
+        raise ValueError("n must be even for Simpson's 1/3 rule")
+    h = (b - a) / n
+    x = np.linspace(a, b, n + 1)
+    y = f(x)
+    integral = y[0] + y[-1]
+    integral += 4 * np.sum(y[1:-1:2])   # odd indices
+    integral += 2 * np.sum(y[2:-1:2])   # even indices
+    integral *= h / 3
+    return integral
+
+
+# Simpson's 3/8 Rule  (n must be a multiple of 3)
+def simpsons_three_eighth(f, a, b, n):
+    if n % 3 != 0:
+        raise ValueError("n must be a multiple of 3 for Simpson's 3/8 rule")
+    h = (b - a) / n
+    x = np.linspace(a, b, n + 1)
+    y = f(x)
+    integral = y[0] + y[-1]
+    for i in range(1, n):
+        if i % 3 == 0:
+            integral += 2 * y[i]
+        else:
+            integral += 3 * y[i]
+    integral *= (3 * h) / 8
+    return integral
+
+
+# ---------------------------------------------------------
+# 4. Boole's Rule (n must be a multiple of 4)
+# ---------------------------------------------------------
+def booles_rule(f, a, b, n):
+    if n % 4 != 0:
+        raise ValueError("n must be a multiple of 4 for Boole's rule")
+    h = (b - a) / n
+    x = np.linspace(a, b, n + 1)
+    y = f(x)
+    integral = 0
+    for i in range(0, n, 4):
+        integral += (2 * h / 45) * (
+            7 * y[i] + 32 * y[i + 1] + 12 * y[i + 2] + 32 * y[i + 3] + 7 * y[i + 4]
+        )
+    return integral
+
+
+# Weddle's Rule (n must be a multiple of 6)
+def weddles_rule(f, a, b, n):
+    if n % 6 != 0:
+        raise ValueError("n must be a multiple of 6 for Weddle's rule")
+    h = (b - a) / n
+    x = np.linspace(a, b, n + 1)
+    y = f(x)
+    integral = 0
+    for i in range(0, n, 6):
+        integral += (3 * h / 10) * (
+            y[i] + 5 * y[i + 1] + y[i + 2] + 6 * y[i + 3]
+            + y[i + 4] + 5 * y[i + 5] + y[i + 6]
+        )
+    return integral
+
+
+# ---------------------------------------------------------
+# Demo / test
+# ---------------------------------------------------------
+if __name__ == "__main__":
+    # 1. Exponential fit demo
+    x_data = [0, 1, 2, 3, 4]
+    y_data = [2, 4, 8, 16, 32]  # exact: a=2, b=2
+    a, b = exponential_fit(x_data, y_data)
+    print(f"Exponential fit: y = {a:.4f} * ({b:.4f})^x")
+
+    # 2-4. Integration demo: integrate f(x) = x^2 from 0 to 6 (exact = 72)
+    f = lambda x: x ** 2
+
+    print("\nIntegral of x^2 from 0 to 6 (exact = 72):")
+    print("Composite Trapezoidal (n=6):", composite_trapezoidal(f, 0, 6, 6))
+    print("Simpson's 1/3         (n=6):", simpsons_one_third(f, 0, 6, 6))
+    print("Simpson's 3/8         (n=6):", simpsons_three_eighth(f, 0, 6, 6))
+    print("Boole's Rule          (n=8):", booles_rule(f, 0, 6, 8))
+    print("Weddle's Rule         (n=6):", weddles_rule(f, 0, 6, 6))
