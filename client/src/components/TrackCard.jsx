@@ -1,0 +1,68 @@
+import { useState } from 'react';
+import api from '../hooks/useApi';
+
+export default function TrackCard({ track, onPlay, isPlaying, onSaved, showSave = true }) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const formatDuration = (ms) => {
+    if (!ms) return '--:--';
+    const min = Math.floor(ms / 60000);
+    const sec = Math.floor((ms % 60000) / 1000);
+    return `${min}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const handleSave = async (e) => {
+    e.stopPropagation();
+    if (saving || saved) return;
+    setSaving(true);
+    try {
+      await api.post('/api/track/save', {
+        externalApiId: track.externalApiId,
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        artworkUrl: track.artworkUrl,
+        durationMs: track.durationMs,
+        apiSource: track.apiSource || 'youtube_music',
+      });
+      setSaved(true);
+      onSaved?.();
+    } catch {
+      setSaving(false);
+    }
+  };
+
+  const handlePlay = async () => {
+    if (track._id && !track.streamUrl) {
+      try {
+        const { data } = await api.get(`/api/track/${track._id}/stream`);
+        track.streamUrl = data.streamUrl;
+      } catch {}
+    }
+    onPlay?.(track);
+  };
+
+  return (
+    <div className="track-card">
+      <div className="track-artwork">
+        <img src={track.artworkUrl} alt={track.title} />
+        {track.externalApiId ? (
+          <button className="track-play-btn" onClick={handlePlay}>
+            {isPlaying ? '⏸' : '▶'}
+          </button>
+        ) : null}
+      </div>
+      <div className="track-info">
+        <span className="track-title">{track.title}</span>
+        <span className="track-artist">{track.artist}</span>
+      </div>
+      {showSave && !saved ? (
+        <button className={`btn-save ${saving ? 'saving' : ''}`} onClick={handleSave} disabled={saving}>
+          {saving ? '...' : '+ Save'}
+        </button>
+      ) : null}
+      <span className="track-duration">{formatDuration(track.durationMs)}</span>
+    </div>
+  );
+}
