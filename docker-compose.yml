@@ -1,0 +1,36 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: moodify-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - moodify-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moodify-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - server/.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/moodify
+      - CLIENT_URL=http://localhost:5000
+      - NODE_ENV=production
+    volumes:
+      - ./server/services/ytmusic_headers.json:/app/services/ytmusic_headers.json
+    depends_on:
+      - mongo
+    networks:
+      - moodify-net
+
+volumes:
+  mongo-data:
+
+networks:
+  moodify-net:
