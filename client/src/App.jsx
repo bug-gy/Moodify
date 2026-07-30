@@ -1,7 +1,9 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { MoodThemeProvider } from './context/MoodThemeContext';
 import { PlayerProvider } from './components/AudioPlayer';
 import Navbar from './components/Navbar';
+import './styles/mood-themes.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -58,12 +60,14 @@ function AppLayout() {
 function App() {
   return (
     <AuthProvider>
+      <MoodThemeProvider>
       <PlayerProvider>
         <Routes>
           <Route path="/now-playing" element={<NowPlaying />} />
           <Route path="*" element={<AppLayout />} />
         </Routes>
       </PlayerProvider>
+      </MoodThemeProvider>
     </AuthProvider>
   );
 }

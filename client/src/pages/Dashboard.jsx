@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePlayer } from '../components/AudioPlayer';
+import { useMoodTheme } from '../context/MoodThemeContext';
 import TrackCard from '../components/TrackCard';
 import PlaylistCard from '../components/PlaylistCard';
 import MoodCard from '../components/MoodCard';
@@ -23,7 +24,8 @@ const moods = [
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { play, currentTrack } = usePlayer();
+  const { play, currentTrack, volume, setVolume } = usePlayer();
+  const { setMood } = useMoodTheme();
   const [searchParams] = useSearchParams();
 
   const [tracks, setTracks] = useState([]);
@@ -38,6 +40,7 @@ export default function Dashboard() {
   const [hasMore, setHasMore] = useState(false);
   const [lastQuery, setLastQuery] = useState(null);
   const [lastSearchType, setLastSearchType] = useState(null);
+  const [showVolume, setShowVolume] = useState(false);
 
   const fetchTracksByMood = useCallback(async (mood, page = 0, append = false) => {
     if (page === 0) setLoading(true);
@@ -52,6 +55,7 @@ export default function Dashboard() {
         setTracks(data.tracks);
       }
       setActiveMood(data.mood);
+      setMood(data.mood);
       setCurrentPage(page);
       setHasMore(data.hasMore);
       setLastQuery(mood);
@@ -63,7 +67,7 @@ export default function Dashboard() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [setMood]);
 
   const fetchTracksByText = useCallback(async (prompt, page = 0, append = false) => {
     if (page === 0) setLoading(true);
@@ -77,7 +81,9 @@ export default function Dashboard() {
       } else {
         setTracks(data.tracks);
       }
-      setActiveMood(data.parsed?.tags?.[0] || null);
+      const detectedMood = data.parsed?.tags?.[0] || null;
+      setActiveMood(detectedMood);
+      setMood(detectedMood);
       setCurrentPage(page);
       setHasMore(data.hasMore);
       setLastQuery(prompt);
@@ -89,7 +95,7 @@ export default function Dashboard() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [setMood]);
 
   const handleLoadMore = () => {
     if (loadingMore || !hasMore) return;
@@ -193,6 +199,33 @@ export default function Dashboard() {
           <section className="recommendations-section">
             <div className="section-header">
               <h2>{activeMood ? `${activeMood.charAt(0).toUpperCase() + activeMood.slice(1)} Recommendations` : 'Recommendations'}</h2>
+              {currentTrack && (
+                <div className="volume-control-inline">
+                  <button
+                    className="btn-icon volume-toggle-btn"
+                    onClick={() => setShowVolume((v) => !v)}
+                    title="Volume"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  </button>
+                  {showVolume && (
+                    <div className="volume-popover">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="volume-slider"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="track-list">
               {tracks.map((track) => (

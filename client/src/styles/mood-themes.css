@@ -1,0 +1,168 @@
+:root {
+  --mood-bg-primary: #1C1814;
+  --mood-bg-secondary: #25211C;
+  --mood-bg-card: #2F2A24;
+  --mood-bg-hover: #3A342E;
+  --mood-accent: #D4A574;
+  --mood-accent-light: #E8C9A0;
+  --mood-accent-dark: #B8895C;
+  --mood-glass: rgba(255, 255, 255, 0.03);
+  --mood-glass-border: rgba(255, 255, 255, 0.06);
+  --mood-glow: rgba(212, 165, 116, 0.08);
+}
+
+.theme-chill {
+  --mood-bg-primary: #0F1923;
+  --mood-bg-secondary: #162230;
+  --mood-bg-card: #1C2D3E;
+  --mood-bg-hover: #23384A;
+  --mood-accent: #7EC8E3;
+  --mood-accent-light: #A8DDF0;
+  --mood-accent-dark: #5AB0D0;
+  --mood-glass: rgba(126, 200, 227, 0.04);
+  --mood-glass-border: rgba(126, 200, 227, 0.08);
+  --mood-glow: rgba(126, 200, 227, 0.1);
+}
+
+.theme-happy {
+  --mood-bg-primary: #1E1A10;
+  --mood-bg-secondary: #2A2418;
+  --mood-bg-card: #352E1F;
+  --mood-bg-hover: #403827;
+  --mood-accent: #F0C75E;
+  --mood-accent-light: #F5DA8A;
+  --mood-accent-dark: #D4A83A;
+  --mood-glass: rgba(240, 199, 94, 0.04);
+  --mood-glass-border: rgba(240, 199, 94, 0.08);
+  --mood-glow: rgba(240, 199, 94, 0.1);
+}
+
+.theme-sad {
+  --mood-bg-primary: #18141C;
+  --mood-bg-secondary: #231E2A;
+  --mood-bg-card: #2E2736;
+  --mood-bg-hover: #383044;
+  --mood-accent: #A78BCC;
+  --mood-accent-light: #C4AFE0;
+  --mood-accent-dark: #8B6DB8;
+  --mood-glass: rgba(167, 139, 204, 0.04);
+  --mood-glass-border: rgba(167, 139, 204, 0.08);
+  --mood-glow: rgba(167, 139, 204, 0.1);
+}
+
+.theme-focused {
+  --mood-bg-primary: #0F1A14;
+  --mood-bg-secondary: #17261E;
+  --mood-bg-card: #1F3127;
+  --mood-bg-hover: #273C30;
+  --mood-accent: #6FBF8A;
+  --mood-accent-light: #94D4A8;
+  --mood-accent-dark: #4FA66A;
+  --mood-glass: rgba(111, 191, 138, 0.04);
+  --mood-glass-border: rgba(111, 191, 138, 0.08);
+  --mood-glow: rgba(111, 191, 138, 0.1);
+}
+
+.theme-sleepy {
+  --mood-bg-primary: #12121C;
+  --mood-bg-secondary: #1C1C2A;
+  --mood-bg-card: #252536;
+  --mood-bg-hover: #2E2E42;
+  --mood-accent: #7A8FCF;
+  --mood-accent-light: #9EB0DF;
+  --mood-accent-dark: #5A72B8;
+  --mood-glass: rgba(122, 143, 207, 0.04);
+  --mood-glass-border: rgba(122, 143, 207, 0.08);
+  --mood-glow: rgba(122, 143, 207, 0.1);
+}
+
+.theme-energetic {
+  --mood-bg-primary: #1E1410;
+  --mood-bg-secondary: #2C1E18;
+  --mood-bg-card: #38271F;
+  --mood-bg-hover: #453027;
+  --mood-accent: #F0784A;
+  --mood-accent-light: #F59E78;
+  --mood-accent-dark: #D05C2E;
+  --mood-glass: rgba(240, 120, 74, 0.04);
+  --mood-glass-border: rgba(240, 120, 74, 0.08);
+  --mood-glow: rgba(240, 120, 74, 0.1);
+}
+
+.theme-romantic {
+  --mood-bg-primary: #1E1418;
+  --mood-bg-secondary: #2C1C24;
+  --mood-bg-card: #38242F;
+  --mood-bg-hover: #452C3A;
+  --mood-accent: #E87A9C;
+  --mood-accent-light: #F0A0B8;
+  --mood-accent-dark: #D05A7E;
+  --mood-glass: rgba(232, 122, 156, 0.04);
+  --mood-glass-border: rgba(232, 122, 156, 0.08);
+  --mood-glow: rgba(232, 122, 156, 0.1);
+}
+
+.theme-nostalgic {
+  --mood-bg-primary: #1C1710;
+  --mood-bg-secondary: #2A2318;
+  --mood-bg-card: #352E1F;
+  --mood-bg-hover: #403827;
+  --mood-accent: #D4A060;
+  --mood-accent-light: #E8BC84;
+  --mood-accent-dark: #B8843C;
+  --mood-glass: rgba(212, 160, 96, 0.04);
+  --mood-glass-border: rgba(212, 160, 96, 0.08);
+  --mood-glow: rgba(212, 160, 96, 0.1);
+}
+
+.theme-rainy {
+  --mood-bg-primary: #14161C;
+  --mood-bg-secondary: #1E202A;
+  --mood-bg-card: #282A36;
+  --mood-bg-hover: #323442;
+  --mood-accent: #8899B8;
+  --mood-accent-light: #A8B8D4;
+  --mood-accent-dark: #6878A0;
+  --mood-glass: rgba(136, 153, 184, 0.04);
+  --mood-glass-border: rgba(136, 153, 184, 0.08);
+  --mood-glow: rgba(136, 153, 184, 0.1);
+}
+
+.theme-cozy {
+  --mood-bg-primary: #1C1610;
+  --mood-bg-secondary: #2A2218;
+  --mood-bg-card: #352C1F;
+  --mood-bg-hover: #403627;
+  --mood-accent: #D4A050;
+  --mood-accent-light: #E8BC74;
+  --mood-accent-dark: #B8842C;
+  --mood-glass: rgba(212, 160, 80, 0.04);
+  --mood-glass-border: rgba(212, 160, 80, 0.08);
+  --mood-glow: rgba(212, 160, 80, 0.1);
+}
+
+.theme-anxious {
+  --mood-bg-primary: #18181C;
+  --mood-bg-secondary: #22222A;
+  --mood-bg-card: #2C2C36;
+  --mood-bg-hover: #363642;
+  --mood-accent: #9898B0;
+  --mood-accent-light: #B4B4CC;
+  --mood-accent-dark: #7C7C98;
+  --mood-glass: rgba(152, 152, 176, 0.04);
+  --mood-glass-border: rgba(152, 152, 176, 0.08);
+  --mood-glow: rgba(152, 152, 176, 0.1);
+}
+
+.theme-angry {
+  --mood-bg-primary: #1E1210;
+  --mood-bg-secondary: #2C1A18;
+  --mood-bg-card: #38221F;
+  --mood-bg-hover: #452A27;
+  --mood-accent: #D05A4A;
+  --mood-accent-light: #E88070;
+  --mood-accent-dark: #B84030;
+  --mood-glass: rgba(208, 90, 74, 0.04);
+  --mood-glass-border: rgba(208, 90, 74, 0.08);
+  --mood-glow: rgba(208, 90, 74, 0.1);
+}
