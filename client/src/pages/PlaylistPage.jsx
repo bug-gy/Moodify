@@ -74,7 +74,12 @@ export default function PlaylistPage() {
   return (
     <div className="page playlist-detail-page">
       <div className="playlist-detail-header">
-        <button className="btn btn-sm" onClick={() => navigate(-1)}>← Back</button>
+        <button className="btn btn-sm" onClick={() => navigate(-1)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Back
+        </button>
         <div className="playlist-detail-info">
           <h2>{playlist.title}</h2>
           {playlist.description && <p>{playlist.description}</p>}

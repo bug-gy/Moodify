@@ -30,9 +30,16 @@ def parse_duration(dur_str):
     return 0
 
 def cmd_search(args):
-    query = ' '.join(args) if args else 'lo fi'
+    limit = 20
+    clean_args = []
+    for a in args:
+        if a.startswith('--limit='):
+            limit = int(a.split('=')[1])
+        else:
+            clean_args.append(a)
+    query = ' '.join(clean_args) if clean_args else 'music'
     yt = get_yt()
-    results = yt.search(query, filter='songs', limit=20)
+    results = yt.search(query, filter='songs', limit=limit)
     tracks = []
     for r in results:
         if r.get('resultType') != 'song':

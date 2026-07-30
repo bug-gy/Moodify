@@ -54,9 +54,24 @@ export function PlayerProvider({ children }) {
     saveSession(currentTrack, queue, history, volume);
   }, [currentTrack, queue, history, volume]);
 
+  const [audioRetryKey, setAudioRetryKey] = useState(0);
+
   useEffect(() => {
     setAudioError(false);
-  }, [currentTrack?.streamUrl]);
+  }, [currentTrack?.externalApiId, audioRetryKey]);
+
+  const getAudioUrl = useCallback((track) => {
+    if (!track) return '';
+    if (track.externalApiId) {
+      return `/api/proxy/audio/${track.externalApiId}`;
+    }
+    return track.streamUrl || '';
+  }, []);
+
+  const retryAudio = useCallback(() => {
+    setAudioError(false);
+    setAudioRetryKey((k) => k + 1);
+  }, []);
 
   const hasPrev = history.length > 0;
   const hasNext = queue.length > 0;
@@ -69,6 +84,7 @@ export function PlayerProvider({ children }) {
     setPaused(false);
     setProgress(0);
     setCurrentTime(0);
+    setAudioError(false);
   }, [currentTrack]);
 
   const playNext = useCallback(() => {
@@ -79,6 +95,7 @@ export function PlayerProvider({ children }) {
     setQueue(rest);
     setProgress(0);
     setCurrentTime(0);
+    setAudioError(false);
   }, [queue, currentTrack]);
 
   const playPrev = useCallback(() => {
@@ -89,6 +106,7 @@ export function PlayerProvider({ children }) {
     setCurrentTrack(prevTrack);
     setProgress(0);
     setCurrentTime(0);
+    setAudioError(false);
   }, [history, currentTrack]);
 
   const stop = useCallback(() => {
@@ -120,14 +138,16 @@ export function PlayerProvider({ children }) {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    if (currentTrack?.streamUrl) {
+    if (currentTrack?.externalApiId) {
       if (!paused) {
-        audioRef.current.play().catch(() => {});
+        audioRef.current.play().catch(() => {
+          setAudioError(true);
+        });
       } else {
         audioRef.current.pause();
       }
     }
-  }, [currentTrack, paused]);
+  }, [currentTrack, paused, audioRetryKey]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
@@ -174,19 +194,21 @@ export function PlayerProvider({ children }) {
     hasPrev, hasNext, showQueue, audioError,
     play, playNext, playPrev, stop, togglePause, setVolume,
     removeFromQueue, clearQueue, setShowQueue,
-    audioRef, navigate,
+    audioRef, navigate, retryAudio, getAudioUrl,
   };
 
   return (
     <PlayerContext.Provider value={ctx}>
-      {currentTrack?.streamUrl && (
+      {currentTrack && currentTrack.externalApiId && (
         <audio
+          key={audioRetryKey}
           ref={audioRef}
-          src={currentTrack.streamUrl}
+          src={getAudioUrl(currentTrack)}
           onTimeUpdate={handleTimeUpdate}
           onEnded={playNext}
           onError={handleAudioError}
           autoPlay
+          crossOrigin="anonymous"
         />
       )}
       {children}
@@ -210,7 +232,12 @@ function QueuePanel() {
       <div className="queue-panel" onClick={(e) => e.stopPropagation()}>
         <div className="queue-panel-header">
           <h3>Up Next ({queue.length})</h3>
-          <button className="queue-panel-close" onClick={() => setShowQueue(false)}>✕</button>
+          <button className="queue-panel-close" onClick={() => setShowQueue(false)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
         {queue.length === 0 ? (
           <p className="queue-empty">Queue is empty</p>
@@ -225,7 +252,12 @@ function QueuePanel() {
                     <span className="queue-item-title">{track.title}</span>
                     <span className="queue-item-artist">{track.artist}</span>
                   </div>
-                  <button className="queue-item-remove" onClick={() => removeFromQueue(i)}>✕</button>
+                  <button className="queue-item-remove" onClick={() => removeFromQueue(i)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>
@@ -239,7 +271,7 @@ function QueuePanel() {
 function AudioPlayerBar() {
   const {
     currentTrack, paused, progress, currentTime, duration, hasPrev, hasNext,
-    togglePause, playNext, playPrev, stop, navigate, setShowQueue, queue, audioError,
+    togglePause, playNext, playPrev, stop, navigate, setShowQueue, queue, audioError, retryAudio,
   } = usePlayer();
 
   const formatTime = (s) => {
@@ -259,11 +291,23 @@ function AudioPlayerBar() {
         </div>
       </div>
       <div className="player-controls">
-        <button className="player-btn" onClick={playPrev} disabled={!hasPrev} title="Previous">⏮</button>
-        <button className="player-btn player-btn-play" onClick={togglePause}>
-          {paused ? '▶' : '⏸'}
+        <button className="player-btn" onClick={playPrev} disabled={!hasPrev} title="Previous">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="19 20 9 12 19 4 19 20"/>
+            <line x1="5" y1="4" x2="5" y2="20"/>
+          </svg>
         </button>
-        <button className="player-btn" onClick={playNext} disabled={!hasNext} title="Next">⏭</button>
+        <button className="player-btn player-btn-play" onClick={togglePause}>
+          {paused
+            ? <svg key="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            : <svg key="pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>}
+        </button>
+        <button className="player-btn" onClick={playNext} disabled={!hasNext} title="Next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="5 4 15 12 5 20 5 4"/>
+            <line x1="19" y1="4" x2="19" y2="20"/>
+          </svg>
+        </button>
       </div>
       <div className="player-progress">
         <span>{formatTime(currentTime)}</span>
@@ -272,14 +316,45 @@ function AudioPlayerBar() {
         </div>
         <span>{formatTime(duration)}</span>
       </div>
-      {audioError && <span className="player-error" title="Stream unavailable">⚠</span>}
+      {audioError && (
+        <>
+          <span className="player-error" title="Stream unavailable">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
+          <button className="player-btn player-btn-retry" onClick={retryAudio} title="Retry">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </>
+      )}
       <button className="player-btn player-queue-btn" onClick={() => setShowQueue(true)} title="Queue">
-        ☰{queue.length > 0 ? <span className="queue-badge">{queue.length}</span> : null}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        {queue.length > 0 ? <span className="queue-badge">{queue.length}</span> : null}
       </button>
       <button className="player-btn player-expand" onClick={() => navigate('/now-playing')} title="Now Playing">
-        ⛶
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 3 21 3 21 9"/>
+          <polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
       </button>
-      <button className="player-btn player-close" onClick={stop}>✕</button>
+      <button className="player-btn player-close" onClick={stop}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
   );
 }

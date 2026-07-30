@@ -49,7 +49,9 @@ export default function TrackCard({ track, onPlay, isPlaying, onSaved, showSave 
         <img src={track.artworkUrl} alt={track.title} />
         {track.externalApiId ? (
           <button className="track-play-btn" onClick={handlePlay}>
-            {isPlaying ? '⏸' : '▶'}
+            {isPlaying
+              ? <svg key="pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+              : <svg key="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20"><polygon points="6 3 20 12 6 21 6 3"/></svg>}
           </button>
         ) : null}
       </div>

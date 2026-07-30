@@ -3,38 +3,38 @@ const { searchTracks, getStreamUrl } = require('../services/musicApi');
 const MoodLog = require('../models/MoodLog');
 
 const guiMoodMap = {
-  chill: 'lo fi chill beats',
-  happy: 'happy lo fi upbeat',
-  sad: 'sad melancholic lo fi',
-  focused: 'lo fi study focus',
-  sleepy: 'sleepy calm lo fi',
-  energetic: 'energetic upbeat lo fi',
-  romantic: 'romantic lo fi love',
-  nostalgic: 'nostalgic lo fi retro',
-  rainy: 'rainy lo fi jazzhop',
-  cozy: 'cozy warm lo fi',
-  anxious: 'calming lo fi anxiety relief',
-  angry: 'calm down lo fi',
+  chill: 'chill relaxing mix',
+  happy: 'upbeat happy pop',
+  sad: 'melancholic sad songs',
+  focused: 'study focus instrumental',
+  sleepy: 'calm sleepy ambient',
+  energetic: 'energetic workout music',
+  romantic: 'romantic love songs',
+  nostalgic: 'nostalgic throwback hits',
+  rainy: 'rainy day acoustic',
+  cozy: 'cozy warm indie',
+  anxious: 'calming peaceful music',
+  angry: 'angry intense rock',
 };
 
 const recommendByGui = async (req, res) => {
   try {
     const { mood } = req.params;
+    const page = parseInt(req.query.page) || 0;
     const normalizedMood = mood.toLowerCase().trim();
-    const searchQuery = guiMoodMap[normalizedMood] || `lo fi ${normalizedMood}`;
+    const searchQuery = guiMoodMap[normalizedMood] || `${normalizedMood} music`;
 
-    const tracks = await searchTracks(searchQuery);
+    const tracks = await searchTracks(searchQuery, 30);
 
-    const tracksWithStreams = await Promise.all(
-      tracks.slice(0, 15).map(async (t) => {
-        try {
-          const url = await getStreamUrl(t.externalApiId);
-          return { ...t, streamUrl: url };
-        } catch {
-          return t;
-        }
-      })
-    );
+    const pageSize = 15;
+    const start = page * pageSize;
+    const paginated = tracks.slice(start, start + pageSize);
+    const hasMore = tracks.length > start + pageSize;
+
+    const tracksWithStreams = paginated.map((t) => ({
+      ...t,
+      streamUrl: null,
+    }));
 
     if (req.user) {
       await MoodLog.create({
@@ -47,6 +47,8 @@ const recommendByGui = async (req, res) => {
 
     res.json({
       mood: normalizedMood,
+      page,
+      hasMore,
       count: tracksWithStreams.length,
       tracks: tracksWithStreams,
     });
@@ -59,6 +61,7 @@ const recommendByGui = async (req, res) => {
 const recommendByText = async (req, res) => {
   try {
     const { prompt } = req.body;
+    const page = parseInt(req.query.page) || 0;
 
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Prompt is required and must be a string' });
@@ -75,18 +78,17 @@ const recommendByText = async (req, res) => {
     const { tags, searchQuery } = parsed;
     const query = searchQuery || tags.slice(0, 2).join(' ');
 
-    const tracks = await searchTracks(query);
+    const tracks = await searchTracks(query, 30);
 
-    const tracksWithStreams = await Promise.all(
-      tracks.slice(0, 20).map(async (t) => {
-        try {
-          const url = await getStreamUrl(t.externalApiId);
-          return { ...t, streamUrl: url };
-        } catch {
-          return t;
-        }
-      })
-    );
+    const pageSize = 15;
+    const start = page * pageSize;
+    const paginated = tracks.slice(start, start + pageSize);
+    const hasMore = tracks.length > start + pageSize;
+
+    const tracksWithStreams = paginated.map((t) => ({
+      ...t,
+      streamUrl: null,
+    }));
 
     if (req.user) {
       await MoodLog.create({
@@ -99,6 +101,8 @@ const recommendByText = async (req, res) => {
 
     res.json({
       parsed,
+      page,
+      hasMore,
       count: tracksWithStreams.length,
       tracks: tracksWithStreams,
     });

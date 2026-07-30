@@ -20,7 +20,7 @@ const callPython = (args) => {
 };
 
 const searchTracks = async (query, limit = 15) => {
-  const tracks = await callPython(['search', query]);
+  const tracks = await callPython(['search', query, `--limit=${Math.max(limit, 20)}`]);
   return tracks.slice(0, limit);
 };
 

@@ -29,42 +29,77 @@ export default function Dashboard() {
   const [tracks, setTracks] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [activeMood, setActiveMood] = useState(null);
   const [textInput, setTextInput] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [lastQuery, setLastQuery] = useState(null);
+  const [lastSearchType, setLastSearchType] = useState(null);
 
-  const fetchTracksByMood = useCallback(async (mood) => {
-    setLoading(true);
+  const fetchTracksByMood = useCallback(async (mood, page = 0, append = false) => {
+    if (page === 0) setLoading(true);
+    else setLoadingMore(true);
     setError(null);
-    setHasSearched(true);
+    if (page === 0) setHasSearched(true);
     try {
-      const { data } = await api.get(`/api/mood/${mood}`);
-      setTracks(data.tracks);
+      const { data } = await api.get(`/api/mood/${mood}?page=${page}`);
+      if (append) {
+        setTracks((prev) => [...prev, ...data.tracks]);
+      } else {
+        setTracks(data.tracks);
+      }
       setActiveMood(data.mood);
+      setCurrentPage(page);
+      setHasMore(data.hasMore);
+      setLastQuery(mood);
+      setLastSearchType('mood');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch recommendations');
-      setTracks([]);
+      if (!append) setTracks([]);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
-  const fetchTracksByText = useCallback(async (prompt) => {
-    setLoading(true);
+  const fetchTracksByText = useCallback(async (prompt, page = 0, append = false) => {
+    if (page === 0) setLoading(true);
+    else setLoadingMore(true);
     setError(null);
-    setHasSearched(true);
+    if (page === 0) setHasSearched(true);
     try {
-      const { data } = await api.post('/api/mood/recommend', { prompt });
-      setTracks(data.tracks);
+      const { data } = await api.post(`/api/mood/recommend?page=${page}`, { prompt });
+      if (append) {
+        setTracks((prev) => [...prev, ...data.tracks]);
+      } else {
+        setTracks(data.tracks);
+      }
       setActiveMood(data.parsed?.tags?.[0] || null);
+      setCurrentPage(page);
+      setHasMore(data.hasMore);
+      setLastQuery(prompt);
+      setLastSearchType('text');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to fetch recommendations');
-      setTracks([]);
+      if (!append) setTracks([]);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
+
+  const handleLoadMore = () => {
+    if (loadingMore || !hasMore) return;
+    const nextPage = currentPage + 1;
+    if (lastSearchType === 'mood') {
+      fetchTracksByMood(lastQuery, nextPage, true);
+    } else if (lastSearchType === 'text') {
+      fetchTracksByText(lastQuery, nextPage, true);
+    }
+  };
 
   const fetchPlaylists = useCallback(async () => {
     try {
@@ -78,9 +113,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (initialMood) {
-      fetchTracksByMood(initialMood);
+      fetchTracksByMood(initialMood, 0, false);
     } else if (initialPrompt) {
-      fetchTracksByText(initialPrompt);
+      fetchTracksByText(initialPrompt, 0, false);
     }
     fetchPlaylists();
   }, [initialMood, initialPrompt, fetchTracksByMood, fetchTracksByText, fetchPlaylists]);
@@ -88,7 +123,7 @@ export default function Dashboard() {
   const handleTextSubmit = (e) => {
     e.preventDefault();
     if (textInput.trim()) {
-      fetchTracksByText(textInput.trim());
+      fetchTracksByText(textInput.trim(), 0, false);
     }
   };
 
@@ -121,7 +156,7 @@ export default function Dashboard() {
                 key={m.mood}
                 mood={m.mood}
                 label={m.label}
-                onClick={() => fetchTracksByMood(m.mood)}
+                onClick={() => fetchTracksByMood(m.mood, 0, false)}
               />
             ))}
           </div>
@@ -170,6 +205,17 @@ export default function Dashboard() {
                 />
               ))}
             </div>
+            {hasMore ? (
+              <div className="load-more-wrap">
+                <button
+                  className="btn btn-secondary load-more-btn"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            ) : null}
           </section>
         ) : null}
 

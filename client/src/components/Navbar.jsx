@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function Navbar() {
+export default function Navbar({ isHome }) {
   const { user, logout } = useAuth();
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">Moodify</Link>
+      <Link to="/" className="navbar-brand">
+        {!isHome && <img src="/MOO.png" alt="" className="navbar-logo" />}
+        Moodify
+      </Link>
       <div className="navbar-links">
         {user ? (
           <>
